@@ -1,0 +1,440 @@
+---
+title: "DATA607finalproject"
+author: "jim lung"
+date: "05-01-2017"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+# Final Project:
+##Introduction
+
+In 2017, some financial companies uses advanced algorithms from data analystic to conduct 100% automatic finacial trading instead of human trading and analysis. I think this project is a good opportunity to help me figure out the relationship between different stock wave.
+
+How the wave of Nasdaq index are affected by Amazon and Facebook?
+
+##Research Questions
+To explore how the wave of Nasdaq index are affected by Amazon and Facebook, I want to break down to different topics about the financial markets.
+
+The statistics of daily historical stock prices & volumes for one year under this category, I will compare from Nasdaq index, Amazon and Facebooks.
+
+The mainly resource I will use is http://www.nasdaq.com
+
+##Proposed Sources
+Both for short term and long term analysis, the related stock news will be used for analysis by sentiments in order to match for complexity.
+
+Data scraping
+http://www.nasdaq.com/symbol/ndaq/historical
+http://www.nasdaq.com/symbol/amzn/historical
+http://www.nasdaq.com/symbol/fb/historical
+
+Data sentiments
+http://www.nasdaq.com/symbol/ndaq/news-headlines
+http://www.nasdaq.com/symbol/amzn/news-headlines
+http://www.nasdaq.com/symbol/fb/news-headlines
+
+##Proposed Methodology
+The visualization of data is to compare the wave and pattern of trend for Nasdaq. 
+Use R¡¦s tm package to create corpora and execute a corpus cleaning algorithm 
+Attempt various combinations of classification algorithms using RTextTools
+sentiment analysis
+
+# Data scraping
+## Scrapying method 1 - Using quantmod
+Using Quantmod function to get data
+
+```{r}
+library(quantmod)
+
+getSymbols("YHOO",src="google") # from google finance
+getSymbols("GOOG",src="yahoo") # from yahoo finance
+
+getSymbols("amzn")
+tail(AMZN)
+
+getSymbols("FB")
+tail(FB)
+
+getSymbols("NDAQ")
+tail(NDAQ)
+```
+
+
+## Scraping method 2 - Loading CSV
+Using CSV direct to push data into R
+
+```{r }
+#load Amazon data
+amzn2<-read.csv("https://raw.githubusercontent.com/fung1091/DATA607finalproject/master/amzn.csv", stringsAsFactors = FALSE)
+head(amzn2)
+
+#load Facebook data
+fb2<-read.csv("https://raw.githubusercontent.com/fung1091/DATA607finalproject/master/fb.csv", stringsAsFactors = FALSE)
+head(fb2)
+
+#load Nasdaq data
+ndaq2<-read.csv("https://raw.githubusercontent.com/fung1091/DATA607finalproject/master/ndaq.csv", stringsAsFactors = FALSE)
+head(ndaq2)
+```
+
+## Scraping method 3:
+
+To compare with the above method for scaping data, the method 3 can be retreive the most updated data for comparison, it may get the real time data, so we will use the method 3 for data analysis.
+
+```{r}
+library(rvest)
+library(RCurl)
+library(XML)
+```
+
+## Create function for scraping data from web
+```{r}
+
+ddd <- function(i){
+
+
+hkurl <- i
+
+'ratings' <- function(hkurl)
+  {
+  require(XML)
+
+hdoc <- getURLContent(hkurl)
+
+# find all tables in webpage
+hktables <- readHTMLTable(hdoc)
+
+# find largest table and return as dataframe
+columns <- unlist(lapply(hktables, function(t) dim(t)[2]))
+ 
+df <- hktables[[max(columns)]]
+ 
+return(df)
+}
+
+seriess <- ratings(hkurl)
+colnames(seriess) <- c("Date","Open","High","Low","Close","Volume")
+seriess
+return(seriess)
+}
+
+
+```
+
+## Create Dataframe by using function
+```{r}
+# Real time data for Nasdaq index
+ndaq3 <- ddd('http://www.nasdaq.com/symbol/ndaq/historical')
+head(ndaq3)
+
+# Real time data for Facebook
+fb3 <- ddd('http://www.nasdaq.com/symbol/fb/historical')
+head(fb3)
+
+# Real time data for Amazon
+amzn3 <- ddd('http://www.nasdaq.com/symbol/amzn/historical')
+head(amzn3)
+```
+
+## Replace text of today and remove comma
+```{r}
+# Get the text of today
+library(lubridate)
+date <- today()
+newdate <- strptime(as.character(date), "%Y-%m-%d")
+txtdate <- format(newdate, "%m/%d/%Y")
+txtdate
+
+# remove comma fuction
+removeComma= function(s) {gsub(",", "", s, fixed = TRUE)}
+```
+
+## Function of calcuation of analysis
+```{r}
+abc <- function(z){
+#colnames(z) <- c("Date","Open","High","Low","Close","Volume")
+z$Date <- as.character(z$Date)
+z$Open <- round(as.numeric(as.character(z$Open)),2)
+z$High <- round(as.numeric(as.character(z$High)),2)
+z$Low <- round(as.numeric(as.character(z$Low)),2)
+z$Close <- round(as.numeric(as.character(z$Close)),2)
+z$Volume <- as.numeric(as.character(removeComma(z$Volume)))
+z[1,1] <- txtdate
+
+z$change <- z$Close - z$Open
+z$rating_change <- z$change / z$Open
+z$date_range <- z$High - z$Low
+z
+}
+
+
+fb3 <- abc(fb3)
+head(fb3) 
+amzn3 <- abc(amzn3)
+head(amzn3)
+ndaq3 <- abc(ndaq3)
+head(ndaq3)
+```
+
+## Cleaning and Analysis 1 - Index comparsion
+```{r}
+library(tidyr)
+library(dplyr)
+fb4 <- fb3 %>% select(Date, Open)
+colnames(fb4) <- c("Date","facebook")
+amzn4 <- amzn3 %>% select(Date, Open)
+colnames(amzn4) <- c("Date","amazon")
+ndaq4 <- ndaq3 %>% select(Date, Open)
+colnames(ndaq4) <- c("Date","nasdaq")
+
+x <- inner_join(fb4,amzn4)
+analysis1 <- inner_join(x,ndaq4) 
+analysis2 <- analysis1 %>% gather(company, index, 2:4)
+head(analysis1)
+head(analysis2)
+
+```
+
+## Stock index comparsion
+
+```{r}
+library(ggplot2)
+
+graph1 <- ggplot(data=analysis2,
+          aes(x=analysis2$Date, y=analysis2$index, group=analysis2$company)) +
+          geom_point(size=3, aes(shape=analysis2$company, color=analysis2$company)) +
+          geom_line(size=1, aes(color=analysis2$company)) +
+          ggtitle("Profiles for stock index comparsion")
+graph1
+```
+
+For the patten for this 3 month, facebook look more similar with nasdaq.
+
+## linear regression comparsion between nasdaq and facebook
+
+Negative linear equation relationship
+
+```{r}
+
+nas_fb <- lm(analysis1$nasdaq ~ analysis1$facebook)
+plot(jitter(analysis1$nasdaq) ~ jitter(analysis1$facebook))
+
+abline(nas_fb)
+summary(nas_fb)
+hist(nas_fb$residuals)
+```
+
+## linear regression comparsion between nasdaq and amazon
+
+Negative linear equation relationship
+
+```{r}
+
+nas_amzn <- lm(analysis1$nasdaq ~ analysis1$amazon)
+plot(jitter(analysis1$nasdaq) ~ jitter(analysis1$amazon))
+
+abline(nas_amzn)
+summary(nas_amzn)
+hist(nas_amzn$residuals)
+```
+
+## Cleaning and Analysis 2 - Rating-change comparsion
+
+```{r}
+
+fb5 <- fb3 %>% select(Date, rating_change)
+colnames(fb5) <- c("Date","facebook")
+amzn5 <- amzn3 %>% select(Date, rating_change)
+colnames(amzn5) <- c("Date","amazon")
+ndaq5 <- ndaq3 %>% select(Date, rating_change)
+colnames(ndaq5) <- c("Date","nasdaq")
+
+x <- inner_join(fb5,amzn5)
+analysis3 <- inner_join(x,ndaq5) 
+analysis4 <- analysis3 %>% gather(company, rating, 2:4)
+
+# Visualization
+graph2 <- ggplot(data=analysis4,
+          aes(x=Date, y=rating, group=company)) +
+          geom_point(size=3, aes(shape=company, color=company)) +
+          geom_line(size=1, aes(color=company)) +
+          ggtitle("stock rating comparsion")
+graph2
+
+```
+
+The wave of facebook and nasdaq seem to be more similar than amazon.
+
+## Cleaning and Analysis 3 -Stock date_range comparsion
+
+```{r}
+fb6 <- fb3 %>% select(Date, date_range)
+colnames(fb6) <- c("Date","facebook")
+amzn6 <- amzn3 %>% select(Date, date_range)
+colnames(amzn6) <- c("Date","amazon")
+ndaq6 <- ndaq3 %>% select(Date, date_range)
+colnames(ndaq6) <- c("Date","nasdaq")
+
+x <- inner_join(fb6,amzn6)
+analysis5 <- inner_join(x,ndaq6) 
+analysis6 <- analysis5 %>% gather(company, date_range, 2:4)
+
+# Visualization
+graph3 <- ggplot(data=analysis6,
+          aes(x=Date, y=date_range, group=company)) +
+          geom_point(size=3, aes(shape=company, color=company)) +
+          geom_line(size=1, aes(color=company)) +
+          ggtitle("stock date_range comparsion")
+graph3
+```
+
+The wave of facebook seem to be close relationship with the wave of nasdaq.
+
+# sentiment analysis
+
+## Comparsion by  using sentiment analysis
+
+```{r}
+library(rvest)
+library(XML)
+library(stringr)
+library(RCurl)
+library(bitops)
+library(tibble) # function tibble
+library(tidytext) # function unnest_tokens
+library(dplyr) # function mutate
+library(tidyr)
+library(ggplot2)
+```
+
+
+## Sentiment analysis from scraping most recent article about Amazon, Facebook and Nasdaq
+```{r}
+
+web <- function(i){
+
+weblinks <- read_html(paste('https://www.nasdaq.com/symbol/',i,'/news-headlines',sep=""))
+
+doc <- htmlParse(weblinks)
+
+links <- xpathSApply(doc, "//a/@href")
+
+#http://www.nasdaq.com/article/
+
+webs <-unlist(str_extract_all(links, 'http://www.nasdaq.com/article.+'))
+webs
+
+}
+
+```
+
+## Most recent article for amazon, fb and nasdaq
+```{r}
+article_amzn <- web("amzn")
+#article_amzn
+article_fb <- web("fb")
+#article_fb
+article_ndaq <- web("ndaq")
+article_ndaq
+```
+
+## Download data
+```{r}
+# Try to use for loop, but overloading
+article_amzn1 <- getURL(article_amzn)
+article_fb1 <- getURL(article_fb)
+article_ndaq1 <- getURL(article_ndaq)
+```
+
+
+## Dataframe for each text
+```{r}
+text <- function(q,j){
+companies <- list(q)
+
+stocks <- c(j)
+
+series <- tibble()
+
+for(i in seq_along(stocks)) {
+        
+        clean <- tibble(article = seq_along(companies[[i]]),
+                        text = companies[[i]]) %>%
+             unnest_tokens(word, text) %>%
+             mutate(company = stocks[i]) %>%
+             select(company, everything())
+
+        series <- rbind(series, clean)
+}
+
+series$company <- factor(series$company, levels = rev(stocks))
+
+series
+}
+
+```
+
+## use function for sentimnet
+```{r}
+text_amzn <- text(article_amzn1,'amazon')
+text_amzn
+text_fb <- text(article_fb1,'facebook')
+text_fb
+text_ndaq <- text(article_ndaq1,'nasdaq')
+text_ndaq
+```
+
+## Sentiment analysis (Using nrc for analysis)
+```{r}
+text_sentiment <- function(text) {
+text %>%
+        right_join(get_sentiments("nrc")) %>%
+        filter(!is.na(sentiment)) %>%
+        count(sentiment, sort = TRUE)
+}
+```
+
+## 3 group sentiment comparsion
+```{r}
+sen_amzn <- text_sentiment(text_amzn)
+sen_amzn
+sen_fb <- text_sentiment(text_fb)
+sen_fb
+sen_ndaq <- text_sentiment(text_ndaq)
+sen_ndaq
+
+```
+Both of those article for amazon, facebook and nasdaq show the positive trend recently. I dont suggest to use all article into analysis, because the trend will become the same between positive and negative.
+
+## Visualization
+
+```{r}
+#Using get_sentiments(bing)
+graph <- function(graph1){
+graph1 %>%
+        group_by(company) %>% 
+        mutate(word_count = 1:n(), index = word_count %/% 500 + 1) %>%
+        inner_join(get_sentiments("bing")) %>%
+        count(company, index = index , sentiment)  %>%
+        ungroup() %>%
+        spread(sentiment, n, fill = 0) %>%
+        mutate(sentiment = positive - negative) %>%
+        ggplot(aes(index, sentiment, fill = company)) +
+        geom_bar(alpha = 0.5, stat = "identity", show.legend = FALSE) +
+        facet_wrap(~ company, ncol = 2, scales = "free_x")
+}
+```
+
+# Graphic comparsion for amazon , facebook, and Nasdaq
+```{r}
+graph(text_amzn)
+graph(text_fb)
+graph(text_ndaq)
+```
+
+Predication for Nasdaq and amazon are most similar than with facebook by comparing graphs.
+
+# Conclusion
+
+By the comparsion with index and sentiment for Amazon, Facebook and Nasdaq, the wave for facebook and Nasdaq are more similar and close relationship than comparing with Amazon. That mean the predication of Nasdaq may be more attend to Facebook, not amazon.
