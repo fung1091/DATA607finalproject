@@ -29,15 +29,17 @@ The mainly resource I will use is http://www.nasdaq.com
 
 Both for short term and long term analysis, the related stock news will be used for analysis by sentiments in order to match for complexity.
 
-Data scraping 
-http://www.nasdaq.com/symbol/ndaq/historical
-http://www.nasdaq.com/symbol/amzn/historical 
-http://www.nasdaq.com/symbol/fb/historical
+Data scraping
 
-Data sentiments 
-http://www.nasdaq.com/symbol/ndaq/news-headlines 
-http://www.nasdaq.com/symbol/amzn/news-headlines 
-http://www.nasdaq.com/symbol/fb/news-headlines
+* http://www.nasdaq.com/symbol/ndaq/historical
+* http://www.nasdaq.com/symbol/amzn/historical 
+* http://www.nasdaq.com/symbol/fb/historical
+
+Data sentiments
+
+* http://www.nasdaq.com/symbol/ndaq/news-headlines 
+* http://www.nasdaq.com/symbol/amzn/news-headlines 
+* http://www.nasdaq.com/symbol/fb/news-headlines
 
 
 ## Data scraping
@@ -58,7 +60,8 @@ head(amzn2)
 
 Scraping method 3:
 To compare with the above method for scaping data, the method 3 can be retreive the most updated data for comparison, it may get the real time data, so we will use the method 3 for data analysis.
-```{r}
+
+```````
 ddd <- function(i){
 
 
@@ -86,33 +89,39 @@ colnames(seriess) <- c("Date","Open","High","Low","Close","Volume")
 seriess
 return(seriess)
 }
-```
+```````
 
 
 ## Function of calcuation of analysis
 
-        Date   Open   High    Low  Close   Volume change rating_change
-1 05/10/2017 151.49 152.59 150.21 150.48 16999575  -1.01  -0.006667107
-2 05/09/2017 151.49 152.59 150.21 150.48 17381800  -1.01  -0.006667107
-3 05/08/2017 150.71 151.08 149.74 151.06 15813350   0.35   0.002322341
-4 05/05/2017 151.45 151.63 149.79 150.24 17104730  -1.21  -0.007989435
-5 05/04/2017 150.17 151.52 148.72 150.85 36185180   0.68   0.004528201
-6 05/03/2017 153.60 153.60 151.34 151.80 28301550  -1.80  -0.011718750
-  date_range
-1       2.38
-2       2.38
-3       1.34
-4       1.84
-5       2.80
-6       2.26
+        Date   Open   High    Low  Close   Volume change rating_change  date_range
+        
+1 05/10/2017 151.49 152.59 150.21 150.48 16999575  -1.01  -0.006667107     2.38
 
+2 05/09/2017 151.49 152.59 150.21 150.48 17381800  -1.01  -0.006667107     2.38
+
+3 05/08/2017 150.71 151.08 149.74 151.06 15813350   0.35   0.002322341     1.34
+
+4 05/05/2017 151.45 151.63 149.79 150.24 17104730  -1.21  -0.007989435     1.84
+
+5 05/04/2017 150.17 151.52 148.72 150.85 36185180   0.68   0.004528201     2.80
+
+6 05/03/2017 153.60 153.60 151.34 151.80 28301550  -1.80  -0.011718750     2.26
+  
+      
 
 ## Stock index comparsion
 
 ![Stock index comparsion](C:\Users\voyo\Documents\DATA607\final project\1.jpg)
 
+## linear regression comparsion between nasdaq and amazon
+
+![Nasdaq and amazon](C:\Users\voyo\Documents\DATA607\final project\4.jpg)
+
 ## linear regression comparsion between nasdaq and facebook
-![picture](C:\Users\voyo\Documents\DATA607\final project\2.jpg)
+
+![Nasdaq and facebook](C:\Users\voyo\Documents\DATA607\final project\2.jpg)
+
 
 ## Stock rating comparsion
 
@@ -129,11 +138,12 @@ The wave of facebook and nasdaq seem to be more similar than amazon.
 Sentiment analysis from scraping most recent article about Amazon, Facebook and Nasdaq.
 
 ![Amazon's article](C:\Users\voyo\Documents\DATA607\final project\11.jpg)
+
 Each pages has 14 articles related to Amazon, that mean scraping this 14 articles equal to the most updated information about amazon.
 
 ## Sentiment analysis from scraping most recent article
 
-```{r}
+``````
 web <- function(i){
 
 weblinks <- read_html(paste('https://www.nasdaq.com/symbol/',i,'/news-headlines',sep=""))
@@ -148,24 +158,188 @@ webs <-unlist(str_extract_all(links, 'http://www.nasdaq.com/article.+'))
 webs
 
 }
-```
+``````
 
-[1] "http://www.nasdaq.com/article/4-stocks-im-never-selling-cm786315"                                              [2] "http://www.nasdaq.com/article/4-stocks-im-never-selling-cm786315"                                               [3] "http://www.nasdaq.com/article/the-first-thing-you-should-do-with-your-social-security-check-cm786333"           [4] "http://www.nasdaq.com/article/the-first-thing-you-should-do-with-your-social-security-check-cm786333"           [5] "http://www.nasdaq.com/article/bats-targets-nyse-and-nasdaq-endofday-volume-with-new-offering-20170508-01109"    [6] "http://www.nasdaq.com/article/us-economics-feds-bullard-current-funds-rate-reasonable-balance-sheet-unwind-could-start-in-2017-cm785162"
-[7] "http://www.nasdaq.com/article/key-takeaways-from-ices-q1-earnings-cm784490"                                     [8] "http://www.nasdaq.com/article/a-drop-in-trading-volume-curbs-nasdaqs-results-cm783594"                          [9] "http://www.nasdaq.com/article/intercontinental-exchange-ice-beats-q1-earnings-estimates-cm783595"               [10] "http://www.nasdaq.com/article/ice-allots-10-mln-for-regulatory-probes-earnings-rise-20170503-01190"            [11] "http://www.nasdaq.com/article/key-takeaways-from-cmes-q1-earnings-cm781544"                                   [12] "http://www.nasdaq.com/article/3-things-you-didnt-know-about-frontier-communications-corporation-cm781065"      [13] "http://www.nasdaq.com/article/key-takeaways-from-nasdaqs-q1-earnings-cm780749"                                 [14] "http://www.nasdaq.com/article/cme-group-cme-q1-earnings-beat-revenues-miss-estimates-cm780387"
+[1] "http://www.nasdaq.com/article/4-stocks-im-never-selling-cm786315"
 
-##
+[2] "http://www.nasdaq.com/article/4-stocks-im-never-selling-cm786315" 
 
-## # A tibble: 252,936 ¡ó 3
-##    company article    word
-## *   <fctr>   <int>   <chr>
-## 1   amazon       1 doctype
-## 2   amazon       1    html
-## 3   amazon       1    html
-## 4   amazon       1    lang
-## 5   amazon       1      en
-## 6   amazon       1      us
-## 7   amazon       1   class
-## 8   amazon       1   inner
-## 9   amazon       1    news
-## 10  amazon       1   story
-## # ... with 252,926 more rows
+[3] "http://www.nasdaq.com/article/the-first-thing-you-should-do-with-your-social-security-check-cm786333"
+
+[4] "http://www.nasdaq.com/article/the-first-thing-you-should-do-with-your-social-security-check-cm786333"
+
+[5] "http://www.nasdaq.com/article/bats-targets-nyse-and-nasdaq-endofday-volume-with-new-offering-20170508-01109"
+
+[6] "http://www.nasdaq.com/article/us-economics-feds-bullard-current-funds-rate-reasonable-balance-sheet-unwind-could-start-in-2017-cm785162"
+
+[7] "http://www.nasdaq.com/article/key-takeaways-from-ices-q1-earnings-cm784490"
+
+[8] "http://www.nasdaq.com/article/a-drop-in-trading-volume-curbs-nasdaqs-results-cm783594"
+
+[9] "http://www.nasdaq.com/article/intercontinental-exchange-ice-beats-q1-earnings-estimates-cm783595"
+
+[10] "http://www.nasdaq.com/article/ice-allots-10-mln-for-regulatory-probes-earnings-rise-20170503-01190"
+
+[11] "http://www.nasdaq.com/article/key-takeaways-from-cmes-q1-earnings-cm781544"
+
+[12] "http://www.nasdaq.com/article/3-things-you-didnt-know-about-frontier-communications-corporation-cm781065"
+
+[13] "http://www.nasdaq.com/article/key-takeaways-from-nasdaqs-q1-earnings-cm780749"
+
+[14] "http://www.nasdaq.com/article/cme-group-cme-q1-earnings-beat-revenues-miss-estimates-cm780387"rr
+
+## Using tbble function for sentiment each words:
+
+  A tibble: 252,936 ¡ó 3
+    company article    word
+    
+  *   <fctr>   <int>   <chr>
+  
+1   amazon       1 doctype
+
+2   amazon       1    html
+
+3   amazon       1    html
+
+4   amazon       1    lang
+
+5   amazon       1      en
+
+6   amazon       1      us
+
+7   amazon       1   class
+
+8   amazon       1   inner
+
+9   amazon       1    news
+
+10  amazon       1   story
+... with 252,926 more rows
+
+-------------------------------------
+
+A tibble: 251,425 ¡ó 3
+
+    company article    word
+    
+    <fctr>   <int>   <chr>
+
+1  facebook       1 doctype
+
+2  facebook       1    html
+
+3  facebook       1    html
+-------------------------------------
+
+ A tibble: 245,628 ¡ó 3
+ 
+   company article    word
+   
+   <fctr>   <int>   <chr>
+
+1   nasdaq       1 doctype
+
+2   nasdaq       1    html
+
+3   nasdaq       1    html
+
+
+## Using get sentiments - nrc for analysis
+
+Amazon:
+
+ A tibble: 10 ¡ó 2
+ 
+     sentiment     n
+     
+          <chr> <int>
+          
+1      positive 11885
+
+2         trust  6574
+
+3      negative  6104
+
+4  anticipation  3104
+
+5       sadness  2849
+
+6          fear  2630
+
+7           joy  2560
+
+8         anger  2335
+
+9      surprise  1870
+
+10      disgust  1457
+-------------------------
+
+Facebook:
+
+ A tibble: 10 ¡ó 2
+ 
+      sentiment     n
+      
+          <chr> <int>
+          
+1      positive 11704
+
+2         trust  6454
+
+3      negative  5988
+
+4  anticipation  3008
+
+5       sadness  2798
+
+6          fear  2597
+
+7           joy  2511
+
+8         anger  2309
+
+9      surprise  1830
+
+10      disgust  1476
+
+------------------------
+
+Nasdaq:
+
+ A tibble: 10 ¡ó 2
+ 
+      sentiment     n
+      
+          <chr> <int>
+          
+1      positive 11691
+
+2         trust  6403
+
+3      negative  5941
+
+4  anticipation  3007
+
+5       sadness  2775
+
+6          fear  2604
+
+7           joy  2465
+
+8         anger  2276
+
+9      surprise  1821
+
+10      disgust  1400
+
+## Visualization
+
+![Amazon](C:\Users\voyo\Documents\DATA607\final project\8.jpg)
+![Facebook](C:\Users\voyo\Documents\DATA607\final project\9.jpg)
+![Nasdaq](C:\Users\voyo\Documents\DATA607\final project\10.jpg)
+Predication for Nasdaq and amazon are most similar than with facebook by comparing graphs.
+
+## Conclusion
+
+By the comparsion with index and sentiment for Amazon, Facebook and Nasdaq, the wave for facebook and Nasdaq are more similar and close relationship than comparing with Amazon. That mean the predication of Nasdaq may be more attend to Facebook, not amazon.
